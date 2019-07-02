@@ -2,8 +2,11 @@
 <head>
 	<meta charset="utf-8">
 	<script src="//d3js.org/d3.v4.min.js"></script>
-	<script src="https://d3js.org/queue.v1.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>-->
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="bootstrap3-typeahead.min.js"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	<link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
 	<style> 
 		body {
@@ -34,16 +37,24 @@
 	</style>
 </head>
 <body> 	
-<div class="container-fluid">
+<div class="container-fluid" style="padding-top: 20px">
 
 	<div class="row">
-		<div class="col-md-3">
-			<h2 style="margin-top: 50px">Back and forth in Peace negotiations</h2>
+		<div class="col-md-3 col-sm-12">
+			<h2>Back and forth in Peace negotiations</h2>
 			<p>All peace processes from 1990-2019 – Hover, and click to explore.</p>
+			<p>	
+				<form>
+  					<div class="form-group">
+						<input class="form-control" id="typeahead" type="text" class="typeahead" placeholder="Search for processes">
+				 	</div>
+				</form>
+			</p>
 			<p id="ideal-example" style="display: none; opacity: 0">If peace processes went smoothly from one stage to the next, they'd be represented with a blue trend upwards: <span></span></p>
 			<p>For underlying data see further <a href="https://www.peaceagreements.org">www.peaceagreements.org</a>.</p>
+
 		</div>
-		<div class="col-md-9 offset-md-3" style="padding-top: 50px; position: fixed">
+		<div class="col-md-9 col-sm-12">
 			<div class="row">
 				<div class="col-md-12">
 					<div id="chart"></div>
@@ -51,9 +62,10 @@
 			</div>
 			<div class="row" id="details" style="border-top: 1px solid lightgrey; padding-top: 10px; margin-top: 10px; min-height: 100px">
 				<div class="col-md-3"><small>Peace Process</small><br><span class="ProcessName"><span class="inactive">Click on line to select process</span></span></div>
-				<div class="col-md-6"><small>Agreement</small><br><span class="Agreement"><span class="inactive">Hover circle to select agreement</span></span></div>
+				<div class="col-md-9"><small>Agreement</small><br><span class="Agreement"><span class="inactive">Hover circle to select agreement</span></span></div>
 			</div>
 			<div class="row">
+
 				<div id="overview" style="width: 100%"></div>
 			</div>
 		</div>
@@ -66,7 +78,7 @@ var width = document.getElementById('chart').clientWidth
 var margin = 150
 var height = 370
 var fixed = null
-var ideal = {};
+var ideal = {show: true};
 
 var sequence = [
 	{"key": "Cea",		"name": ["Ceasefire","related"],					"color": d3.rgb(241,80,31,.8),		'position': 5},
@@ -77,11 +89,9 @@ var sequence = [
 	{"key": "Ren",		"name": [],											"color": d3.rgb(74,144,226,8),		'position': 1},
 ]
 
-queue()
-  .defer(d3.csv, 'agreements-small.csv')
-  .await(init);
+d3.csv("agreements-small.csv", d=>init(d))
 
-function init(error,pax) {
+function init(pax) {
 
 	//Filter & Sort agreement data
 	pax = pax.filter((d,i) => d.Stage !== "Oth")
@@ -172,7 +182,7 @@ function init(error,pax) {
 		.attr("class","processes")
 		.attr("clip-path", "url(#ellipse-clip)")
 		.attr("pointer-events", "all")
-		.on("click",d=>{console.log(d)})
+		//.on("click",d=>{console.log(d)})
 
 	var process = container.selectAll("g")
 		.data(Object.entries(data)).enter()
@@ -185,6 +195,7 @@ function init(error,pax) {
 		.attr("pointer-events","none")
 		.attr("fill-opacity", 0)
 		.attr("stroke-width", 1)
+		.attr("stroke-linecap","round")
 		.attr("stroke-opacity", 0.05)
 		.attr("d",(d,i)=>segment(d,i,scaleX))
 		.attr("stroke", (d,i)=>{
@@ -224,8 +235,8 @@ function init(error,pax) {
 		})
 
 	//Idealized process line
-	showIdealLine();
-	function showIdealLine() {
+	drawIdeal();
+	function drawIdeal() {
 		ideal.container = svg.append("g").attr("class","ideal")
 
 		//draw line in plot
@@ -250,53 +261,34 @@ function init(error,pax) {
 				.attr("dy","10pt")
 				.attr("font-size","10pt")
 				.style("font-weight",(d,i) => (i > 1) ? "bold" : "normal")
-				.on("click",_=>hideIdeal())
+				.on("click",_=>toggleIdeal())
 
 		//draw example in explanation
 		ideal.example = d3.select("#ideal-example span").append("svg")
 			.attr("width",20)
 			.attr("height",12)
+			.on("mouseover",_=>toggleIdeal())
+			.on("mouseout",_=>toggleIdeal())
 			.append("path")
 				.attr("d","M 1 11 C 10 11, 10 1, 20 1")
 				.attr("stroke","#0075FF")
 				.attr("stroke-width",2)
-				.attr("fill","transparent")
-
-
-		d3.select("#ideal-example")
-			.on("mouseover",_=>showIdeal())
-			.on("mouseout",_=>hideIdeal())
+				.attr("fill","transparent")			
 	}
 
-	function hideIdeal() {
-		ideal.container.transition().duration(200).style("opacity",0)
-		d3.select("#ideal-example").style("display","block").style("opacity",1)
-		processPath.attr("pointer-events","all").transition().duration(200).attr("stroke-opacity",9)
-
-	}
-
-	function showIdeal() {
-		ideal.container.transition().duration(200).style("opacity",1)
-		processPath.transition().duration(200).attr("stroke-opacity",.05)
-	}
-	
-
-	/*var overview = d3.select("#overview")
-		.append("svg")
-			.attr("viewBox","0 0 "+width+" 500")
-			.attr("preserveAspectRatio","xMidYMid meet")
-
-	overview.append("g")
-		.selectAll("line")
-		.data(Object.values(processes))
-		.enter()
-		.append("line")
-    		.attr("stroke",d3.rgb(0,0,0,1))
-    		.attr("stroke-width",.2)
-    		.attr("x1",d=> Math.round(scaleX(parseTime(d[0].Date))))
-    		.attr("x2",d=> Math.round(scaleX(parseTime(d[d.length-1].Date))))
-    		.attr("y1",(d,i) => (i *1))
-    		.attr("y2",(d,i) => (i *1))*/
+	function toggleIdeal() {
+		if(ideal.show) {
+			ideal.container.transition().duration(200).style("opacity",0)
+			d3.select("#ideal-example").style("display","block").style("opacity",1)
+			processPath.attr("pointer-events","all").transition().duration(200).attr("stroke-opacity",9)
+			ideal.show = false;
+		} else {
+			ideal.container.transition().duration(200).style("opacity",1)
+			processPath.transition().duration(200).attr("stroke-opacity",.05)
+			ideal.show = true;
+		}
+		
+	}	
 
     //INTERACTION
 	var zoom = d3.zoom()
@@ -320,34 +312,30 @@ function init(error,pax) {
 	}
 
 	processPath
-		.on("mouseover",d=>highlightProcess(d))
-		.on("click",d=>fixed ? exitProcess(d) : enterProcess(d))
-		.on("mouseout",d=>deHighlightProcess(d))
-
-	/*svg.on("click",function(){
-		if(fixed) exitProcess();
-	})*/
+		.on("mousemove",d=>highlightProcess(d))
+		.on("click",d=>fixed ? exitProcess() : enterProcess(d.PP))
+		.on("mouseout",_=>highlightProcess())
 
 	var highlightProcess = function(d) {
-		if(!fixed && d.PPName != "ideal") {
-			console.log(d)
-			processPath.attr("stroke-opacity",0.05)
-			d3.selectAll("g.PP-"+d.PP+" path").attr("stroke-opacity",1).attr("stroke-width",3)
-			d3.select("#details .ProcessName").html(d.PPName)
+		if(!fixed){
+			if(d) {
+				processPath.attr("stroke-opacity",0.05)
+				d3.selectAll("g.PP-"+d.PP+" path").attr("stroke-opacity",1).attr("stroke-width",3)
+				d3.select("#details .ProcessName").html(d.PPName)
+			} else {
+				processPath.attr("stroke-opacity", .9).attr("stroke-width",1)
+				d3.select("#details .ProcessName").html('<span class="inactive">Click on line to select process</span>')
+			}
 		}
 	}
 
-	var deHighlightProcess = function(d) {
-		if(!fixed) {
-			processPath.attr("stroke-opacity", .9).attr("stroke-width",1)
-			d3.select("#details .ProcessName").html('<span class="inactive">Click on line to select process</span>')
-		}
-	}
-
-	var enterProcess = function(d) {
-		fixed = d.PPName
-		d3.selectAll("circle.PP-"+d.PP).attr("opacity",.7).attr("pointer-events", "all")
-		processPath.attr("pointer-events","none")
+	var enterProcess = function(id) {
+		if(fixed) exitProcess();
+		if(ideal.show) toggleIdeal();
+		fixed = id
+		processPath.attr("pointer-events","none").attr("stroke-opacity",0.05)
+		d3.selectAll("g.PP-"+id+" path").attr("stroke-opacity",1).attr("stroke-width",3)
+		d3.selectAll("circle.PP-"+id).attr("opacity",.7).attr("pointer-events", "all")
 
 		/*var d0 = parseTime(data[d.PPName][0].Date)
 		var d1 = parseTime(data[d.PPName][data[d.PPName].length-1].Date)
@@ -369,6 +357,15 @@ function init(error,pax) {
 		circles.attr("opacity",0).attr("pointer-events", "none")
 		processPath.attr("stroke-opacity", .9).attr("stroke-width",1)
 	}
+
+	var $input = $("#typeahead");
+	 $input
+	 	.typeahead({ source:Object.entries(data).map(d=>{return {'name': d[0], "PP": d[1][0].PP}}).filter(d=>d.name != "ideal") })
+	 	.change(function(e){
+	 		enterProcess($input.typeahead("getActive").PP)
+	 	})
+
+
 }
 </script>
 </body>
