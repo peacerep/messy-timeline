@@ -277,14 +277,15 @@ function init(pax) {
 	}
 
 	function toggleIdeal() {
+		console.log("toggle")
 		if(ideal.show) {
 			ideal.container.transition().duration(200).style("opacity",0)
 			d3.select("#ideal-example").style("display","block").style("opacity",1)
-			processPath.attr("pointer-events","all").transition().duration(200).attr("stroke-opacity",9)
+			processPath.attr("pointer-events","all").attr("stroke-opacity",9)
 			ideal.show = false;
 		} else {
 			ideal.container.transition().duration(200).style("opacity",1)
-			processPath.transition().duration(200).attr("stroke-opacity",.05)
+			processPath.attr("stroke-opacity",.05)
 			ideal.show = true;
 		}
 		
@@ -313,7 +314,7 @@ function init(pax) {
 
 	processPath
 		.on("mousemove",d=>highlightProcess(d))
-		.on("click",d=>fixed ? exitProcess() : enterProcess(d.PP))
+		.on("click",d=>fixed ? exitProcess() : enterProcess(d.PP, d.PPName))
 		.on("mouseout",_=>highlightProcess())
 
 	var highlightProcess = function(d) {
@@ -323,46 +324,55 @@ function init(pax) {
 				d3.selectAll("g.PP-"+d.PP+" path").attr("stroke-opacity",1).attr("stroke-width",3)
 				d3.select("#details .ProcessName").html(d.PPName)
 			} else {
-				processPath.attr("stroke-opacity", .9).attr("stroke-width",1)
+				processPath.attr("stroke-opacity", 1).attr("stroke-width",1)
 				d3.select("#details .ProcessName").html('<span class="inactive">Click on line to select process</span>')
 			}
 		}
 	}
 
-	var enterProcess = function(id) {
-		if(fixed) exitProcess();
+	var enterProcess = function(id, name) {
 		if(ideal.show) toggleIdeal();
+		if(fixed) exitProcess();
+
 		fixed = id
-		processPath.attr("pointer-events","none").attr("stroke-opacity",0.05)
+		processPath.attr("stroke-opacity",0.05)
 		d3.selectAll("g.PP-"+id+" path").attr("stroke-opacity",1).attr("stroke-width",3)
 		d3.selectAll("circle.PP-"+id).attr("opacity",.7).attr("pointer-events", "all")
+		d3.select("#details .ProcessName").html(name)
 
-		/*var d0 = parseTime(data[d.PPName][0].Date)
-		var d1 = parseTime(data[d.PPName][data[d.PPName].length-1].Date)
-		svg.call(zoom).transition().duration(1500)
+		var d0 = scaleX(parseTime(data[name][0].Date))
+		var d1 = scaleX(parseTime(data[name][data[name].length-1].Date))
+		var scale = (width - margin + 60) / (d1 - d0) / 2
+
+		/*svg.call(zoom).transition().duration(1500)
       		.call(zoom.transform,
       			d3.zoomIdentity
-       			  .scale( (width - margin - 60) / (scaleX(d1) - scaleX(d0)) )
-       			  .translate(30-scaleX(d0), 0));*/
+      				.translate(d0, 0)
+       				.scale(scale)
+       			  );*/
 	}
 
 	var exitProcess = function() {
+		console.log("exit")
 		fixed = null;
+
 		/*svg.call(zoom).transition().duration(1500)
       		.call(zoom.transform,
       			d3.zoomIdentity
        			  .scale(1)
        			  .translate(0, 0)
        		);*/
+
 		circles.attr("opacity",0).attr("pointer-events", "none")
 		processPath.attr("stroke-opacity", .9).attr("stroke-width",1)
+		d3.select("#details .ProcessName").html('<span class="inactive">Click on line to select process</span>')
 	}
 
 	var $input = $("#typeahead");
 	 $input
 	 	.typeahead({ source:Object.entries(data).map(d=>{return {'name': d[0], "PP": d[1][0].PP}}).filter(d=>d.name != "ideal") })
 	 	.change(function(e){
-	 		enterProcess($input.typeahead("getActive").PP)
+	 		enterProcess($input.typeahead("getActive").PP, $input.typeahead("getActive").name)
 	 	})
 
 
