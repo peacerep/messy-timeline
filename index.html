@@ -89,7 +89,7 @@ var sequence = [
 	{"key": "Ren",		"name": [],											"color": d3.rgb(74,144,226,8),		'position': 1},
 ]
 
-d3.csv("agreements-small.csv", d=>init(d))
+d3.csv("agreements-small-june-2019.csv", d=>init(d))
 
 function init(pax) {
 
@@ -277,7 +277,6 @@ function init(pax) {
 	}
 
 	function toggleIdeal() {
-		console.log("toggle")
 		if(ideal.show) {
 			ideal.container.transition().duration(200).style("opacity",0)
 			d3.select("#ideal-example").style("display","block").style("opacity",1)
@@ -293,9 +292,9 @@ function init(pax) {
 
     //INTERACTION
 	var zoom = d3.zoom()
-		.scaleExtent([1, Infinity])
-		.translateExtent([[0, 0], [width-margin, height]])
-		.extent([[0, 0], [width-margin, height]])
+		.scaleExtent([0, 1])
+		.translateExtent([[0, 0], [width, height]])
+		.extent([[0, 0], [width, height]])
 		.on("zoom", zoomed);
     svg.call(zoom)
 
@@ -342,7 +341,7 @@ function init(pax) {
 
 		var d0 = scaleX(parseTime(data[name][0].Date))
 		var d1 = scaleX(parseTime(data[name][data[name].length-1].Date))
-		var scale = (width - margin + 60) / (d1 - d0) / 2
+		var scale = width / (d1 - d0)
 
 		/*svg.call(zoom).transition().duration(1500)
       		.call(zoom.transform,
@@ -353,7 +352,6 @@ function init(pax) {
 	}
 
 	var exitProcess = function() {
-		console.log("exit")
 		fixed = null;
 
 		/*svg.call(zoom).transition().duration(1500)
@@ -374,8 +372,6 @@ function init(pax) {
 	 	.change(function(e){
 	 		enterProcess($input.typeahead("getActive").PP, $input.typeahead("getActive").name)
 	 	})
-
-
 }
 </script>
 </body>
