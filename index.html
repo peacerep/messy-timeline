@@ -8,22 +8,22 @@
 	<script src="bootstrap3-typeahead.min.js"></script>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	<link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
-	<style> 
+	<style>
 		body {
 			font-family: 'Karla', sans-serif;
 		}
-		div.tooltip { 
-    		position: absolute;     
-    		text-align: left;     
-    		width: auto;          
+		div.tooltip {
+    		position: absolute;
+    		text-align: left;
+    		width: auto;
     		max-width: 300px;
-    		height: auto;   
-    		padding: 10px;       
-    		font: 12px sans-serif;    
-    		background: lightsteelblue; 
-    		border: 0px;    
-    		border-radius: 3px;     
-    		pointer-events: none;     
+    		height: auto;
+    		padding: 10px;
+    		font: 12px sans-serif;
+    		background: lightsteelblue;
+    		border: 0px;
+    		border-radius: 3px;
+    		pointer-events: none;
 	}
 
 	.inactive {
@@ -36,14 +36,14 @@
 
 	</style>
 </head>
-<body> 	
+<body>
 <div class="container-fluid" style="padding-top: 20px">
 
 	<div class="row">
 		<div class="col-md-3 col-sm-12">
 			<h2>Back and forth in Peace negotiations</h2>
 			<p>All peace processes from 1990-2019 – Hover, and click to explore.</p>
-			<p>	
+			<p>
 				<form>
   					<div class="form-group">
 						<input class="form-control" id="typeahead" type="text" class="typeahead" placeholder="Search for processes">
@@ -89,6 +89,9 @@ var sequence = [
 	{"key": "Ren",		"name": [],											"color": d3.rgb(74,144,226,8),		'position': 1},
 ]
 
+d3.json("https://test.pax.peaceagreements.org/api/agreements/?format=json",d=>{
+	console.log(d)
+})
 d3.csv("agreements-small-june-2019.csv", d=>init(d))
 
 function init(pax) {
@@ -121,7 +124,7 @@ function init(pax) {
 			.attr("id","svg")
 			.attr("viewBox","0 0 "+width+" "+height)
 			.attr("preserveAspectRatio","xMidYMid meet")
-	
+
 	//Scales & Axes
 	var scaleColor = d3.scaleLinear()
 		.domain([-350,0,350])
@@ -177,7 +180,7 @@ function init(pax) {
 			.attr("y", 0)
 			.attr("width", width-margin-10)
 			.attr("height", height);  //clipPath for zoomed data
-	
+
 	var container = svg.append("g")
 		.attr("class","processes")
 		.attr("clip-path", "url(#ellipse-clip)")
@@ -273,7 +276,7 @@ function init(pax) {
 				.attr("d","M 1 11 C 10 11, 10 1, 20 1")
 				.attr("stroke","#0075FF")
 				.attr("stroke-width",2)
-				.attr("fill","transparent")			
+				.attr("fill","transparent")
 	}
 
 	function toggleIdeal() {
@@ -287,8 +290,8 @@ function init(pax) {
 			processPath.attr("stroke-opacity",.05)
 			ideal.show = true;
 		}
-		
-	}	
+
+	}
 
     //INTERACTION
 	var zoom = d3.zoom()
