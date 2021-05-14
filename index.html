@@ -268,7 +268,7 @@ function init(pax) {
 		ideal.helper = ideal.container.append("text")
 			.attr("y",scaleY(3.2))
 			.attr("fill","#0075FF")
-			.selectAll("tspan").data(["If peace data went smoothly from one stage to the next,","they'd be represented with a blue line steadyly going up.","CLICK TO START"]).enter().append("tspan")
+			.selectAll("tspan").data(["If peace data went smoothly from one stage to the next,","they'd be represented with a blue line steadily going up.","CLICK TO START"]).enter().append("tspan")
 				.text(d=>d)
 				.attr("x",Math.round(scaleX(parseTime("01/06/1998"))))
 				.attr("dy","10pt")
